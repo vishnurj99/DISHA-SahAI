@@ -37,7 +37,7 @@ Recommended Groq setup:
 ```bash
 LLM_PROVIDER=groq
 LLM_BASE_URL=https://api.groq.com/openai/v1
-LLM_MODEL=qwen/qwen3.6-27b
+LLM_MODEL=llama-3.1-8b-instant
 LLM_TIMEOUT_MS=30000
 GROQ_API_KEY=your-groq-api-key
 ```

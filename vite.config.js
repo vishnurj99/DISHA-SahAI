@@ -30,6 +30,12 @@ function readRequestBody(req) {
 
 function getAiConfig() {
   const provider = process.env.LLM_PROVIDER || "ollama";
+  const defaultModelByProvider = {
+    groq: "llama-3.1-8b-instant",
+    google: "gemini-2.0-flash",
+    openai: "gpt-4o-mini",
+    ollama: "gemma3:4b",
+  };
   const apiKeyByProvider = {
     groq: process.env.GROQ_API_KEY || process.env.LLM_API_KEY || "",
     google:
@@ -53,7 +59,7 @@ function getAiConfig() {
       /\/$/,
       "",
     ),
-    model: process.env.LLM_MODEL || "gemma3:4b",
+    model: process.env.LLM_MODEL || defaultModelByProvider[provider] || "gemma3:4b",
     timeoutMs: Number(process.env.LLM_TIMEOUT_MS || 30000),
     apiKey: apiKeyByProvider[provider] || process.env.LLM_API_KEY || "",
   };
@@ -398,7 +404,7 @@ function dishaAiPlugin() {
           maxTokens: 1300,
           payload,
           system:
-            "You score semantic career fit for DISHA. Use only candidate IDs provided. Return JSON: {\"scores\":[{\"occupationId\":\"...\",\"score\":0.0,\"rationale\":\"short evidence\"}]}. Score 1 means the learner profile strongly fits the occupation; 0 means poor fit. Include every candidate exactly once.",
+            "You score semantic career fit for DISHA. Use only candidate IDs provided and consider the supplied role requirements, academic credit records, credentials, and skills. Return JSON: {\"scores\":[{\"occupationId\":\"...\",\"score\":0.0,\"rationale\":\"short evidence\"}]}. Score 1 means the learner profile strongly fits the occupation; 0 means poor fit. Include every candidate exactly once.",
         });
         sendJson(res, 200, validateSemanticScores(parseJsonFromModel(text), candidateIds));
         return;
@@ -410,7 +416,7 @@ function dishaAiPlugin() {
           maxTokens: 700,
           payload,
           system:
-            "You write a grounded DISHA recommendation explanation for a learner or counselor. Use only the facts in the input. Do not mention courses, jobs, URLs, pay, or crowding values that are not present. If the requested language is Tamil, write in simple Tamil; otherwise write in plain English. Keep it under 150 words.",
+            "You write a grounded DISHA recommendation explanation for a learner or counselor. Use only the facts in the input, including academic credits, matched requirements, missing requirements, and recommended public courses when present. Do not mention courses, jobs, URLs, pay, or crowding values that are not present. If the requested language is Tamil, write in simple Tamil; otherwise write in plain English. Keep it under 150 words.",
         });
         if (!text.trim()) throw new Error("Model returned an empty explanation.");
         sendJson(res, 200, { explanation: text.trim() });

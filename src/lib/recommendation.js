@@ -17,6 +17,8 @@ const weights = {
   demand: 0.17,
 };
 
+const publicCourseSourceTypes = new Set(["government-of-india", "state-government", "public-open"]);
+
 export function createInitialProfile() {
   return {
     name: primaryLearner.name,
@@ -28,6 +30,7 @@ export function createInitialProfile() {
     targetOccupationId: primaryLearner.targetOccupationId,
     wageExpectationMonthly: primaryLearner.wageExpectationMonthly,
     language: "English",
+    academicCredits: primaryLearner.academicCredits,
     credentials: primaryLearner.credentials,
     skills: primaryLearner.skills,
     constraints: ["near Coimbatore"],
@@ -40,7 +43,13 @@ function normalize(value) {
   return String(value || "").toLowerCase();
 }
 
+function isCompletedCredit(record) {
+  return record?.selected !== false && normalize(record?.status || "completed").includes("completed");
+}
+
 function profileText(profile) {
+  const academicCredits = Array.isArray(profile.academicCredits) ? profile.academicCredits : [];
+  const completedAcademicCredits = academicCredits.filter(isCompletedCredit);
   return [
     profile.education,
     profile.stream,
@@ -48,6 +57,12 @@ function profileText(profile) {
     profile.targetOccupation,
     ...(profile.credentials || []),
     ...(profile.skills || []),
+    ...completedAcademicCredits.flatMap((record) => [
+      record.course,
+      record.subjectName,
+      record.subjectCode,
+      record.university,
+    ]),
   ]
     .map(normalize)
     .join(" ");
@@ -73,6 +88,7 @@ export function normalizeExtractedProfile(profile) {
     name: profile.name?.trim() || "Learner",
     region: regions.includes(profile.region) ? profile.region : "Coimbatore",
     wageExpectationMonthly: Math.max(6000, Number(profile.wageExpectationMonthly || 12000)),
+    academicCredits: Array.isArray(profile.academicCredits) ? profile.academicCredits : [],
     credentials: Array.isArray(profile.credentials) ? profile.credentials : [],
     skills: Array.isArray(profile.skills) ? profile.skills : [],
     constraints: Array.isArray(profile.constraints) ? profile.constraints : [],
@@ -86,19 +102,100 @@ function requirementMatches(text, group) {
   return group.some((keyword) => text.includes(keyword));
 }
 
+function getRequirements(occupation) {
+  if (Array.isArray(occupation.requirements) && occupation.requirements.length) {
+    return occupation.requirements;
+  }
+  return (occupation.requiredGroups || []).map((keywords, index) => ({
+    label: `Requirement ${index + 1}`,
+    gapTag: `${occupation.id}-requirement-${index + 1}`,
+    keywords,
+  }));
+}
+
+function evidenceForRequirement(profile, requirement) {
+  const academicCredits = Array.isArray(profile.academicCredits) ? profile.academicCredits : [];
+  const completedAcademicCredits = academicCredits.filter(isCompletedCredit);
+  const credentials = profile.credentials || [];
+  const skills = profile.skills || [];
+  const requirementKeywords = requirement.keywords || [];
+
+  const creditMatches = completedAcademicCredits
+    .filter((record) =>
+      requirementKeywords.some((keyword) =>
+        [
+          record.course,
+          record.subjectName,
+          record.subjectCode,
+          record.university,
+        ].some((value) => normalize(value).includes(normalize(keyword))),
+      ),
+    )
+    .map((record) => ({
+      type: "credit",
+      label: record.subjectName,
+      detail: `${record.course} · ${record.credit} credits`,
+      source: record.university,
+    }));
+
+  const credentialMatches = credentials
+    .filter((credential) => requirementKeywords.some((keyword) => normalize(credential).includes(normalize(keyword))))
+    .map((credential) => ({
+      type: "credential",
+      label: credential,
+      detail: "Learner profile",
+      source: "Profile",
+    }));
+
+  const skillMatches = skills
+    .filter((skill) => requirementKeywords.some((keyword) => normalize(skill).includes(normalize(keyword))))
+    .map((skill) => ({
+      type: "skill",
+      label: skill,
+      detail: "Learner skill",
+      source: "Profile",
+    }));
+
+  return [...creditMatches, ...credentialMatches, ...skillMatches];
+}
+
 function qualificationFit(profile, occupation) {
   const text = profileText(profile);
-  const matched = occupation.requiredGroups.filter((group) => requirementMatches(text, group));
-  const missing = occupation.requiredGroups.length - matched.length;
+  const requirements = getRequirements(occupation).map((requirement) => {
+    const matched = requirementMatches(text, requirement.keywords || []);
+    return {
+      label: requirement.label,
+      gapTag: requirement.gapTag,
+      keywords: requirement.keywords || [],
+      matched,
+      evidence: matched ? evidenceForRequirement(profile, requirement).slice(0, 3) : [],
+    };
+  });
+  const matched = requirements.filter((requirement) => requirement.matched);
+  const missingRequirements = requirements.filter((requirement) => !requirement.matched);
+  const missing = missingRequirements.length;
 
-  if (missing === 0) return { score: 1, missing, status: "Ready" };
-  if (missing === 1) return { score: 0.76, missing, status: "One course short" };
-  if (missing === 2) return { score: 0.42, missing, status: "Needs attention" };
-  return { score: 0.25, missing, status: "Closest reachable" };
+  if (missing === 0) return { score: 1, missing, status: "Ready", requirements, matchedRequirements: matched, missingRequirements };
+  if (missing === 1) return { score: 0.76, missing, status: "One course short", requirements, matchedRequirements: matched, missingRequirements };
+  if (missing === 2) return { score: 0.42, missing, status: "Needs attention", requirements, matchedRequirements: matched, missingRequirements };
+  return { score: 0.25, missing, status: "Closest reachable", requirements, matchedRequirements: matched, missingRequirements };
 }
 
 function getCourse(courseId) {
   return courses.find((course) => course.id === courseId);
+}
+
+function coursesForGaps(gapTags, bridgeCourse) {
+  const gapTagSet = new Set(gapTags);
+  const matchingCourses = courses
+    .filter((course) => publicCourseSourceTypes.has(course.sourceType))
+    .filter((course) => (course.eligibleGapTags || []).some((tag) => gapTagSet.has(tag)))
+    .sort((a, b) => {
+      if (a.id === bridgeCourse?.id) return -1;
+      if (b.id === bridgeCourse?.id) return 1;
+      return a.durationWeeks - b.durationWeeks || a.title.localeCompare(b.title);
+    });
+  return matchingCourses.length ? matchingCourses : bridgeCourse ? [bridgeCourse] : [];
 }
 
 function getDemand(region, field) {
@@ -161,8 +258,23 @@ export function buildCandidateFacts(profile) {
       basePayMonthly: occupation.basePayMonthly,
       timeToJobWeeks: occupation.timeToJobWeeks,
       requiredSkills: occupation.skills,
+      requirements: getRequirements(occupation).map((requirement) => ({
+        label: requirement.label,
+        gapTag: requirement.gapTag,
+        keywords: requirement.keywords,
+      })),
       learnerEducation: normalized.education,
       learnerCredentials: normalized.credentials,
+      learnerAcademicCredits: normalized.academicCredits.map((record) => ({
+        university: record.university,
+        course: record.course,
+        subjectName: record.subjectName,
+        subjectCode: record.subjectCode,
+        year: record.year,
+        credit: record.credit,
+        selected: record.selected,
+        status: record.status,
+      })),
       qualificationStatus: fit.status,
       missingRequirementCount: fit.missing,
       bridgeCourse: course
@@ -170,7 +282,12 @@ export function buildCandidateFacts(profile) {
             id: course.id,
             title: course.title,
             provider: course.provider,
+            sourceType: course.sourceType,
+            authority: course.authority,
             durationWeeks: course.durationWeeks,
+            sourceName: course.sourceName,
+            sourceUrl: course.sourceUrl,
+            eligibleGapTags: course.eligibleGapTags,
           }
         : null,
       nearbyJobs: {
@@ -200,6 +317,10 @@ export function rankRecommendations(profile, semanticScores, learnerPool = synth
     const demandRow = getDemand(normalized.region, occupation.field);
     const crowd = crowdingStats(normalized.region, occupation.id, learnerPool);
     const course = getCourse(occupation.bridgeCourseId);
+    const gapCourses = coursesForGaps(
+      fit.missingRequirements.map((requirement) => requirement.gapTag),
+      course,
+    );
     const targetMatch = normalized.targetOccupationId === occupation.id ? 0.05 : 0;
     const semanticFit = Math.min(1, semantic.score + targetMatch);
     const nearbyJobScore = Math.min(1, job.openings / 160);
@@ -222,6 +343,12 @@ export function rankRecommendations(profile, semanticScores, learnerPool = synth
       qualificationFit: fit.score,
       readinessStatus: fit.status,
       missingRequirementCount: fit.missing,
+      gapAnalysis: {
+        requirements: fit.requirements,
+        matchedRequirements: fit.matchedRequirements,
+        missingRequirements: fit.missingRequirements,
+        recommendedCourses: gapCourses,
+      },
       payGainScore: payScore,
       nearbyJobScore,
       demandStrength: demandRow.hiringStrength,
@@ -339,6 +466,13 @@ export function buildExplanationPayload(runResult, preferredLanguage) {
       targetOccupation: runResult.profile.targetOccupation,
       confidence: runResult.profile.confidence,
       missingFields: runResult.profile.missingFields,
+      academicCredits: (runResult.profile.academicCredits || []).filter(isCompletedCredit).map((record) => ({
+        course: record.course,
+        subjectName: record.subjectName,
+        subjectCode: record.subjectCode,
+        credit: record.credit,
+        source: record.university,
+      })),
     },
     recommendations: runResult.top.map((row) => ({
       title: row.title,
@@ -352,6 +486,15 @@ export function buildExplanationPayload(runResult, preferredLanguage) {
       course: row.course?.title,
       timeToJobWeeks: row.timeToJobWeeks,
       readinessStatus: row.readinessStatus,
+      matchedRequirements: row.gapAnalysis.matchedRequirements.map((requirement) => requirement.label),
+      missingRequirements: row.gapAnalysis.missingRequirements.map((requirement) => requirement.label),
+      recommendedCourses: row.gapAnalysis.recommendedCourses.map((course) => ({
+        title: course.title,
+        provider: course.provider,
+        authority: course.authority,
+        sourceType: course.sourceType,
+        durationWeeks: course.durationWeeks,
+      })),
       crowdingPenalty: Math.round(row.crowdingPenalty),
       aiRationale: row.aiRationale,
     })),
@@ -362,6 +505,11 @@ export function buildExplanationPayload(runResult, preferredLanguage) {
           aspirants: runResult.selfSelected.crowding.aspirants,
           capacity: runResult.selfSelected.crowding.capacity,
           finalScore: Math.round(runResult.selfSelected.finalScore),
+          readinessStatus: runResult.selfSelected.readinessStatus,
+          missingRequirements: runResult.selfSelected.gapAnalysis.missingRequirements.map(
+            (requirement) => requirement.label,
+          ),
+          recommendedCourses: runResult.selfSelected.gapAnalysis.recommendedCourses.map((course) => course.title),
         }
       : null,
   };

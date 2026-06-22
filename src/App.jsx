@@ -15,19 +15,19 @@ import {
   Landmark,
   Languages,
   Loader2,
+  LogOut,
   MapPinned,
   Network,
   Play,
   RefreshCw,
   ShieldCheck,
-  SlidersHorizontal,
   Sparkles,
   Target,
   UserRound,
   Users,
   WifiOff,
 } from "lucide-react";
-import { courses, occupations, regions, sampleInputs } from "./data/demoData.js";
+import { occupations, regions, sampleInputs } from "./data/demoData.js";
 import { checkModelHealth, extractProfile, generateExplanation, scoreSemanticFit } from "./lib/aiClient.js";
 import {
   buildCandidateFacts,
@@ -39,11 +39,58 @@ import {
   rankRecommendations,
 } from "./lib/recommendation.js";
 
-const tabs = [
-  { id: "intake", label: "AI Intake", icon: Sparkles },
-  { id: "counselor", label: "Counselor", icon: Users },
-  { id: "government", label: "Government", icon: Landmark },
-  { id: "evaluation", label: "Evaluation", icon: ClipboardCheck },
+const trackMeta = {
+  learner: {
+    label: "Learner",
+    icon: Sparkles,
+    description: "Career pathways and next steps.",
+  },
+  counselor: {
+    label: "Counselor",
+    icon: Users,
+    description: "Assigned learners and readiness.",
+  },
+  government: {
+    label: "Government",
+    icon: Landmark,
+    description: "Regional supply and demand.",
+  },
+  evaluation: {
+    label: "Operations",
+    icon: ClipboardCheck,
+    description: "System health and validation.",
+  },
+};
+
+const testUsers = [
+  {
+    id: "asha",
+    name: "Asha R.",
+    role: "learner",
+    org: "Govt Arts College, Coimbatore",
+    purpose: "View career pathways and next steps.",
+  },
+  {
+    id: "revathi",
+    name: "Revathi Narayanan",
+    role: "counselor",
+    org: "District Skill Centre",
+    purpose: "Review assigned learners and readiness.",
+  },
+  {
+    id: "tn-admin",
+    name: "TN Skill Mission Admin",
+    role: "government",
+    org: "Tamil Nadu Skill Mission",
+    purpose: "Monitor regional supply and demand.",
+  },
+  {
+    id: "reviewer",
+    name: "Operations Reviewer",
+    role: "evaluation",
+    org: "DISHA Operations",
+    purpose: "Review system health and validation.",
+  },
 ];
 
 function money(value) {
@@ -59,7 +106,7 @@ function percent(value) {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState("intake");
+  const [sessionUser, setSessionUser] = useState(null);
   const [inputText, setInputText] = useState(sampleInputs.english);
   const [preferredLanguage, setPreferredLanguage] = useState("English");
   const [modelHealth, setModelHealth] = useState({ state: "checking", detail: "Checking model" });
@@ -117,55 +164,142 @@ function App() {
     setPreferredLanguage(sampleKey === "tamil" ? "Tamil" : "English");
   }
 
+  function renderTrack() {
+    if (!sessionUser) return null;
+    if (sessionUser.role === "learner") {
+      return (
+        <IntakeView
+          inputText={inputText}
+          setInputText={setInputText}
+          preferredLanguage={preferredLanguage}
+          setPreferredLanguage={setPreferredLanguage}
+          applySample={applySample}
+          runState={runState}
+          runPipeline={runPipeline}
+          editableProfile={editableProfile}
+          setEditableProfile={setEditableProfile}
+          currentRun={currentRun}
+        />
+      );
+    }
+    if (sessionUser.role === "counselor") return <CounselorView currentRun={currentRun} />;
+    if (sessionUser.role === "government") return <GovernmentView currentRun={currentRun} />;
+    return <EvaluationView runState={runState} modelHealth={modelHealth} />;
+  }
+
+  if (!sessionUser) {
+    return (
+      <LoginView
+        modelHealth={modelHealth}
+        onLogin={setSessionUser}
+      />
+    );
+  }
+
+  const userTrack = trackMeta[sessionUser.role];
+  const TrackIcon = userTrack.icon;
+
   return (
     <div className="app-shell">
       <aside className="role-shell">
         <div className="brand-block">
           <span className="brand-mark">D</span>
           <div>
-            <div className="role-kicker">DISHA Phase 2</div>
+            <div className="role-kicker">DISHA</div>
             <strong>AI Career Pathways</strong>
           </div>
         </div>
-        <nav className="role-switcher" aria-label="App views">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                type="button"
-                key={tab.id}
-                className={`role-button ${activeTab === tab.id ? "active" : ""}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <Icon size={18} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+        <div className="session-card" aria-label="Current user">
+          <span className="avatar large">{sessionUser.name.charAt(0)}</span>
+          <div>
+            <span className="section-kicker">Signed in as</span>
+            <h2>{sessionUser.name}</h2>
+            <p>{sessionUser.org}</p>
+          </div>
+        </div>
+        <div className="track-lock">
+          <TrackIcon size={18} />
+          <div>
+            <strong>{userTrack.label}</strong>
+          </div>
+        </div>
+        <button type="button" className="logout-button" onClick={() => setSessionUser(null)}>
+          <LogOut size={17} />
+          Logout
+        </button>
         <ModelBadge health={modelHealth} />
       </aside>
 
       <main className="main">
-        {activeTab === "intake" && (
-          <IntakeView
-            inputText={inputText}
-            setInputText={setInputText}
-            preferredLanguage={preferredLanguage}
-            setPreferredLanguage={setPreferredLanguage}
-            applySample={applySample}
-            runState={runState}
-            runPipeline={runPipeline}
-            editableProfile={editableProfile}
-            setEditableProfile={setEditableProfile}
-            currentRun={currentRun}
-          />
-        )}
-        {activeTab === "counselor" && <CounselorView currentRun={currentRun} />}
-        {activeTab === "government" && <GovernmentView currentRun={currentRun} />}
-        {activeTab === "evaluation" && <EvaluationView runState={runState} modelHealth={modelHealth} />}
+        {renderTrack()}
       </main>
     </div>
+  );
+}
+
+function LoginView({ modelHealth, onLogin }) {
+  return (
+    <main className="login-page">
+      <section className="login-shell">
+        <HeaderBand
+          eyebrow="DISHA"
+          title="Sign in to DISHA"
+          copy="Access the workspace for career guidance, counseling, regional planning, and operations readiness."
+          right={
+            <div className="source-stack">
+              <SourceChip icon={BadgeCheck} label="Verified records" detail="Profile and credentials" />
+              <SourceChip icon={ShieldCheck} label="Role access" detail="Focused workspace" />
+            </div>
+          }
+        />
+        <div className="login-content">
+          <section className="panel login-panel">
+            <div className="panel-heading">
+              <div>
+                <span className="section-kicker">Access</span>
+                <h2>Select your profile</h2>
+              </div>
+              <Users size={24} />
+            </div>
+            <div className="user-grid">
+              {testUsers.map((user) => {
+                const meta = trackMeta[user.role];
+                const Icon = meta.icon;
+                return (
+                  <button
+                    type="button"
+                    className="user-card"
+                    key={user.id}
+                    onClick={() => onLogin(user)}
+                  >
+                    <span className="avatar">{user.name.charAt(0)}</span>
+                    <span className="user-card-copy">
+                      <strong>{user.name}</strong>
+                      <small>{user.org}</small>
+                      <span className="track-pill">
+                        <Icon size={15} />
+                        {meta.label}
+                      </span>
+                      <span className="user-purpose">{user.purpose}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+          <section className="panel login-status-panel">
+            <div className="panel-heading">
+              <div>
+                <span className="section-kicker">Status</span>
+                <h2>System readiness</h2>
+              </div>
+              <Brain size={24} />
+            </div>
+            <ModelBadge health={modelHealth} />
+          </section>
+        </div>
+      </section>
+    </main>
   );
 }
 
@@ -176,8 +310,7 @@ function ModelBadge({ health }) {
     <div className={`model-badge ${health.state}`}>
       <Icon size={17} className={health.state === "checking" ? "spin" : ""} />
       <div>
-        <strong>{ready ? "AI model ready" : health.state === "checking" ? "Checking AI" : "AI unavailable"}</strong>
-        <span>{health.detail}</span>
+        <strong>{ready ? "AI ready" : health.state === "checking" ? "Checking AI" : "AI unavailable"}</strong>
       </div>
     </div>
   );
@@ -214,31 +347,41 @@ function IntakeView({
   return (
     <section className="view">
       <HeaderBand
-        eyebrow="Working AI flow"
-        title="Learner intake to ranked pathways"
-        copy="Enter a learner profile in English or Tamil. The configured model extracts profile JSON, scores semantic fit, and writes the final explanation from validated facts."
+        eyebrow="Career Pathways"
+        title="Learner pathways"
+        copy="Review verified credits, choose an aspiring role, and compare the gaps to public course options."
         right={
           <div className="source-stack">
-            <SourceChip icon={BadgeCheck} label="Synthetic DPI" detail="APAAR and credentials" />
-            <SourceChip icon={Network} label="Seeded demand" detail="Jobs, courses, capacity" />
-            <SourceChip icon={ShieldCheck} label="No fallback AI" detail="Model errors stop the run" />
+            <SourceChip icon={BadgeCheck} label="Verified record" detail="Credits and credentials" />
+            <SourceChip icon={Network} label="Public courses" detail="Govt and open sources" />
           </div>
         }
       />
+
+      <section className="panel credit-ledger-panel">
+        <div className="panel-heading">
+          <div>
+            <span className="section-kicker">Current learning record</span>
+            <h2>Credits and completed courses</h2>
+          </div>
+          <Database size={24} />
+        </div>
+        <AcademicCreditsTable records={editableProfile.academicCredits || []} />
+      </section>
 
       <div className="workspace-grid">
         <section className="panel intake-panel">
           <div className="panel-heading">
             <div>
-              <span className="section-kicker">Profile text</span>
-              <h2>AI extraction input</h2>
+              <span className="section-kicker">Profile</span>
+              <h2>Learner profile</h2>
             </div>
             <Languages size={24} />
           </div>
           <div className="sample-row">
-            <button type="button" onClick={() => applySample("english")}>Asha English</button>
-            <button type="button" onClick={() => applySample("tamil")}>Asha Tamil</button>
-            <button type="button" onClick={() => applySample("missing")}>Missing credentials</button>
+            <button type="button" onClick={() => applySample("english")}>English profile</button>
+            <button type="button" onClick={() => applySample("tamil")}>Tamil profile</button>
+            <button type="button" onClick={() => applySample("missing")}>Incomplete profile</button>
           </div>
           <textarea
             className="profile-input"
@@ -266,7 +409,7 @@ function IntakeView({
               disabled={runState.status === "loading"}
             >
               {runState.status === "loading" ? <Loader2 size={18} className="spin" /> : <Play size={18} />}
-              Run AI recommendation
+              Generate recommendation
             </button>
           </div>
           {runState.status === "error" && (
@@ -280,10 +423,10 @@ function IntakeView({
         <section className="panel">
           <div className="panel-heading">
             <div>
-              <span className="section-kicker">Validated profile</span>
-              <h2>Extracted learner JSON</h2>
+              <span className="section-kicker">Aspiring role</span>
+              <h2>Role and constraints</h2>
             </div>
-            <Database size={24} />
+            <Target size={24} />
           </div>
           <EditableProfile
             profile={editableProfile}
@@ -300,8 +443,8 @@ function IntakeView({
         <section className="panel empty-state">
           <Sparkles size={28} />
           <div>
-            <h2>No recommendation run yet</h2>
-            <p>The first successful run will show extracted profile confidence, AI semantic scores, ranked pathways, evidence, and crowding logic.</p>
+            <h2>Ready for gap analysis</h2>
+            <p>Generate a recommendation to compare the selected role with completed credits, missing requirements, and public courses.</p>
           </div>
         </section>
       )}
@@ -369,24 +512,81 @@ function EditableProfile({ profile, setProfile, onRerun, disabled }) {
       </label>
       <button type="button" className="ghost-button editor-run" onClick={onRerun} disabled={disabled}>
         <RefreshCw size={17} />
-        Re-run AI scoring
+        Update role analysis
       </button>
+    </div>
+  );
+}
+
+function AcademicCreditsTable({ records }) {
+  const completedRecords = records.filter(
+    (record) => record.selected !== false && String(record.status || "Completed").toLowerCase().includes("completed"),
+  );
+  if (!records.length) {
+    return (
+      <div className="abc-records empty-credits">
+        <p>No verified credit records are available for this learner.</p>
+      </div>
+    );
+  }
+  const selectedCredits = completedRecords
+    .reduce((total, record) => total + Number(record.credit || 0), 0);
+  const sourceCount = new Set(completedRecords.map((record) => record.university)).size;
+  return (
+    <div className="abc-records">
+      <div className="credit-summary">
+        <Stat icon={ShieldCheck} value={String(completedRecords.length).padStart(2, "0")} label="Completed courses" />
+        <Stat icon={GraduationCap} value={String(selectedCredits).padStart(2, "0")} label="Current credits" />
+        <Stat icon={Database} value={sourceCount || "n/a"} label="Record sources" />
+      </div>
+      <div className="abc-heading">
+        <div>
+          <span className="section-kicker">Academic Bank of Credits / NQR-ready</span>
+          <h3>Verified course ledger</h3>
+        </div>
+        <strong>{String(selectedCredits).padStart(2, "0")} credits</strong>
+      </div>
+      <div className="abc-table" role="table" aria-label="Academic Bank of Credits records">
+        <div className="abc-row abc-header" role="row">
+          <span>University</span>
+          <span>Course</span>
+          <span>Subject</span>
+          <span>Code</span>
+          <span>Year</span>
+          <span>Credit</span>
+          <span>Status</span>
+        </div>
+        {records.map((record) => (
+          <div className="abc-row" role="row" key={`${record.subjectCode}-${record.year}`}>
+            <span>{record.university}</span>
+            <span>{record.course}</span>
+            <span>{record.subjectName}</span>
+            <span>{record.subjectCode}</span>
+            <span>{record.year}</span>
+            <span>{String(record.credit).padStart(2, "0")}</span>
+            <span>{record.status}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function RecommendationResults({ currentRun }) {
   const top = currentRun.top[0];
+  const aspiringPath = currentRun.selfSelected || top;
   const crowded = currentRun.crowdingSummary[0];
   return (
     <div className="results-stack">
+      <RoleGapPanel pathway={aspiringPath} profile={currentRun.profile} />
+
       <section className="anti-herding">
         <div className="alert-icon">
           <AlertTriangle size={23} />
         </div>
         <div>
-          <span className="section-kicker">Anti-herding proof</span>
-          <h2>{currentRun.profile.targetOccupation || "Self-selected path"} is checked against cohort crowding</h2>
+          <span className="section-kicker">Market crowding insight</span>
+          <h2>{aspiringPath.title} is checked against cohort crowding</h2>
           <p>
             {crowded.title} has {crowded.aspirants} aspirants for {crowded.capacity} local slots in {currentRun.profile.region}. The top recommendation is {top.title} after applying the crowding penalty and tie-break rules.
           </p>
@@ -412,16 +612,15 @@ function RecommendationResults({ currentRun }) {
         <div className="panel explanation-panel">
           <div className="panel-heading">
             <div>
-              <span className="section-kicker">Model generated</span>
-              <h2>Grounded explanation</h2>
+              <span className="section-kicker">Recommendation summary</span>
+              <h2>Pathway rationale</h2>
             </div>
             <Sparkles size={24} />
           </div>
           <p className="large-copy">{currentRun.explanation}</p>
           <div className="health-strip">
-            <Stat icon={Brain} value={currentRun.semantic.scores.length} label="AI semantic scores" />
-            <Stat icon={Gauge} value={`${currentRun.latencyMs || 0}ms`} label="End-to-end run" />
-            <Stat icon={ShieldCheck} value={percent(currentRun.profile.confidence)} label="Extraction confidence" />
+            <Stat icon={Brain} value={currentRun.semantic.scores.length} label="Pathways reviewed" />
+            <Stat icon={ShieldCheck} value={percent(currentRun.profile.confidence)} label="Profile confidence" />
           </div>
         </div>
 
@@ -429,15 +628,15 @@ function RecommendationResults({ currentRun }) {
           <div className="panel-heading">
             <div>
               <span className="section-kicker">Evidence</span>
-              <h2>Courses and source links</h2>
+              <h2>Public courses for selected role</h2>
             </div>
             <BookOpen size={24} />
           </div>
           <div className="course-list">
-            {currentRun.top.map((pathway) => (
-              <a key={pathway.id} href={pathway.course?.sourceUrl} target="_blank" rel="noreferrer">
-                <strong>{pathway.course?.title}</strong>
-                <span>{pathway.course?.provider} · {pathway.course?.durationWeeks} weeks</span>
+            {aspiringPath.gapAnalysis.recommendedCourses.map((course) => (
+              <a key={course.id} href={course.sourceUrl} target="_blank" rel="noreferrer">
+                <strong>{course.title}</strong>
+                <span>{course.provider} · {course.authority} · {course.durationWeeks} weeks</span>
               </a>
             ))}
           </div>
@@ -445,6 +644,92 @@ function RecommendationResults({ currentRun }) {
       </section>
     </div>
   );
+}
+
+function RoleGapPanel({ pathway, profile }) {
+  const matched = pathway.gapAnalysis?.matchedRequirements || [];
+  const missing = pathway.gapAnalysis?.missingRequirements || [];
+  const courses = pathway.gapAnalysis?.recommendedCourses || [];
+  const requirementTotal = matched.length + missing.length;
+  return (
+    <section className="panel role-gap-panel">
+      <div className="panel-heading">
+        <div>
+          <span className="section-kicker">Selected role gap analysis</span>
+          <h2>{pathway.title}</h2>
+        </div>
+        <Target size={24} />
+      </div>
+      <div className="gap-summary-grid">
+        <Stat icon={CheckCircle2} value={`${matched.length}/${requirementTotal}`} label="Requirements matched" />
+        <Stat icon={AlertTriangle} value={missing.length} label="Open gaps" />
+        <Stat icon={BookOpen} value={courses.length} label="Public course options" />
+        <Stat icon={MapPinned} value={profile.region} label="Learner region" />
+      </div>
+      <div className="gap-columns">
+        <div className="gap-column">
+          <h3>Profile evidence</h3>
+          <div className="gap-list">
+            {matched.map((requirement) => (
+              <div className="gap-item matched" key={requirement.gapTag}>
+                <CheckCircle2 size={18} />
+                <div>
+                  <strong>{requirement.label}</strong>
+                  <span>
+                    {requirement.evidence.length
+                      ? requirement.evidence.map((item) => item.label).join(", ")
+                      : "Profile evidence found"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="gap-column">
+          <h3>Gaps to close</h3>
+          <div className="gap-list">
+            {missing.length ? (
+              missing.map((requirement) => (
+                <div className="gap-item missing" key={requirement.gapTag}>
+                  <AlertTriangle size={18} />
+                  <div>
+                    <strong>{requirement.label}</strong>
+                    <span>Look for: {requirement.keywords.slice(0, 4).join(", ")}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="gap-item matched">
+                <CheckCircle2 size={18} />
+                <div>
+                  <strong>No required gaps found</strong>
+                  <span>The verified record covers the listed role requirements.</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="gap-column course-column">
+          <h3>Courses to fill gaps</h3>
+          <div className="course-list compact">
+            {courses.map((course) => (
+              <a key={course.id} href={course.sourceUrl} target="_blank" rel="noreferrer">
+                <strong>{course.title}</strong>
+                <span>{course.provider} · {course.authority}</span>
+                <small>{course.durationWeeks} weeks · {sourceTypeLabel(course.sourceType)}</small>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function sourceTypeLabel(sourceType) {
+  if (sourceType === "government-of-india") return "Government of India";
+  if (sourceType === "state-government") return "State government";
+  return "Public/open source";
 }
 
 function PathwayCard({ pathway, index }) {
@@ -460,13 +745,13 @@ function PathwayCard({ pathway, index }) {
       <div className="pathway-metrics">
         <Metric icon={IndianRupee} value={money(pathway.basePayMonthly)} label={`${pathway.wageDelta.toFixed(1)}x expected`} />
         <Metric icon={Briefcase} value={pathway.job.openings} label={`${pathway.job.distanceKm} km jobs`} />
-        <Metric icon={Target} value={percent(pathway.semanticFit)} label="AI semantic fit" />
+        <Metric icon={Target} value={percent(pathway.semanticFit)} label="Profile fit" />
         <Metric icon={BarChart3} value={`-${Math.round(pathway.crowdingPenalty)}`} label="Crowding penalty" />
       </div>
       <div className="explainability">
-        <strong>{pathway.readinessStatus}</strong>
+        <strong>{pathway.readinessStatus}: {pathway.gapAnalysis.matchedRequirements.length}/{pathway.gapAnalysis.requirements.length} requirements matched</strong>
         <p>{pathway.aiRationale}</p>
-        <p>Course: {pathway.course?.title}. Time to job: {pathway.timeToJobWeeks} weeks.</p>
+        <p>Course: {pathway.course?.title} from {pathway.course?.provider}. Time to job: {pathway.timeToJobWeeks} weeks.</p>
       </div>
     </article>
   );
@@ -479,11 +764,11 @@ function CounselorView({ currentRun }) {
       <HeaderBand
         eyebrow="Caseload"
         title="Counselor dashboard"
-        copy="The counselor sees readiness, crowding, and the latest AI-ranked learner path without reading raw model output."
+        copy="Review learner readiness, recommended pathways, and market crowding signals."
         right={
           <div className="source-stack">
-            <SourceChip icon={Users} label="18 shown" detail="52 synthetic learners" />
-            <SourceChip icon={AlertTriangle} label="Crowding flags" detail="Same capacity logic" />
+            <SourceChip icon={Users} label="Assigned learners" detail="Priority caseload" />
+            <SourceChip icon={AlertTriangle} label="Crowding flags" detail="Capacity aware" />
           </div>
         }
       />
@@ -523,10 +808,10 @@ function GovernmentView({ currentRun }) {
       <HeaderBand
         eyebrow="Aggregate signal"
         title="Supply-demand map"
-        copy="Each cell compares synthetic learner supply against regional demand capacity. The current AI recommendation is included after a successful run."
+        copy="Compare learner demand with regional capacity and identify gaps for planning."
         right={
           <div className="source-stack">
-            <SourceChip icon={MapPinned} label="5 regions" detail="Tamil Nadu seed" />
+            <SourceChip icon={MapPinned} label="5 regions" detail="District view" />
             <SourceChip icon={Database} label="No data state" detail="Distinct from balanced" />
           </div>
         }
@@ -560,13 +845,13 @@ function EvaluationView({ runState, modelHealth }) {
   return (
     <section className="view">
       <HeaderBand
-        eyebrow="Submission evidence"
-        title="Evaluation and validation tracker"
-        copy="Use this screen during the walkthrough to show model availability, factuality guardrails, and the representative test plan."
+        eyebrow="Operations"
+        title="System readiness"
+        copy="Monitor AI availability, validation status, and responsible AI controls."
         right={
           <div className="source-stack">
-            <SourceChip icon={ClipboardCheck} label="AI metrics" detail="JSON, fit, latency" />
-            <SourceChip icon={GraduationCap} label="User validation" detail="Proxy sprint testing" />
+            <SourceChip icon={ClipboardCheck} label="Validation" detail="Current checks" />
+            <SourceChip icon={GraduationCap} label="Readiness" detail="Operational review" />
           </div>
         }
       />
@@ -575,13 +860,13 @@ function EvaluationView({ runState, modelHealth }) {
           <div className="panel-heading">
             <div>
               <span className="section-kicker">Current run</span>
-              <h2>AI/model checks</h2>
+              <h2>AI checks</h2>
             </div>
             <Gauge size={24} />
           </div>
           <div className="evaluation-grid">
             <Stat icon={Brain} value={modelOk ? "Pass" : "Fail"} label="Model endpoint reachable" />
-            <Stat icon={Database} value={runOk ? "Pass" : "Waiting"} label="Valid extracted JSON" />
+            <Stat icon={Database} value={runOk ? "Pass" : "Waiting"} label="Profile validation" />
             <Stat icon={ShieldCheck} value={runOk ? "0" : "n/a"} label="Hallucinated IDs accepted" />
             <Stat icon={Gauge} value={runOk ? `${runState.latencyMs}ms` : "n/a"} label="Observed latency" />
           </div>
@@ -589,15 +874,15 @@ function EvaluationView({ runState, modelHealth }) {
         <section className="panel">
           <div className="panel-heading">
             <div>
-              <span className="section-kicker">Representative set</span>
-              <h2>Cases to run before submission</h2>
+              <span className="section-kicker">Validation queue</span>
+              <h2>Coverage checks</h2>
             </div>
             <ClipboardCheck size={24} />
           </div>
           <ul className="check-list">
             <li>English BA Economics learner targeting a crowded analyst path.</li>
             <li>Tamil learner profile with the same Asha facts.</li>
-            <li>Missing credential case with limited-information labeling.</li>
+            <li>Incomplete credential case with limited-information labeling.</li>
             <li>ITI/polytechnic learner for manufacturing or green energy.</li>
             <li>No nearby jobs case that widens the region honestly.</li>
           </ul>
@@ -612,12 +897,12 @@ function EvaluationView({ runState, modelHealth }) {
           <ShieldCheck size={24} />
         </div>
         <div className="guardrail-grid">
-          <span>Model JSON schema validation</span>
+          <span>Structured profile validation</span>
           <span>Unknown course/job IDs rejected</span>
-          <span>Synthetic data clearly labeled</span>
+          <span>Data provenance reviewed</span>
           <span>No sensitive personal data required</span>
           <span>Low confidence visible in profile</span>
-          <span>No deterministic AI fallback</span>
+          <span>AI unavailability shown clearly</span>
         </div>
       </section>
     </section>
