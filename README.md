@@ -2,7 +2,7 @@
 
 DISHA is a hackathon MVP for AI-assisted career pathway recommendations. It uses synthetic learner, course, job, and demand data, then calls a real configured model for:
 
-- Free-text learner profile extraction in English or Tamil.
+- Free-text learner profile extraction.
 - Semantic career-fit scoring across candidate occupations.
 - Grounded learner/counselor explanation text.
 
@@ -58,17 +58,18 @@ http://127.0.0.1:5173/
 
 The app should show `AI model ready` in the left rail. If it shows `AI unavailable`, check your `.env` provider, model name, API key, and network access.
 
-## Demo Flow
+## Learner Flow
 
-1. Open the **AI Intake** tab.
-2. Use the default Asha sample, or choose the English/Tamil/missing-credential sample buttons.
-3. Click **Run AI recommendation**.
+1. Sign in with the seeded learner profile.
+2. Review the current credits and completed courses.
+3. Enter or edit the learner profile text.
+4. Choose the aspiring role and constraints.
+5. Click **Generate recommendation**.
 4. The app runs three real model calls:
    - Profile extraction.
    - Semantic fit scoring.
    - Grounded explanation generation.
-5. DISHA then ranks recommendations with deterministic scoring for qualification fit, pay gain, nearby jobs, demand, and crowding.
-6. Open **Counselor** and **Government** to see the same recommendation signal reflected in aggregate views.
+6. DISHA shows matched requirements, gaps to close, public course options, ranked pathways, and crowding signals.
 
 ## Other Provider Options
 
@@ -149,34 +150,9 @@ The preview server also serves the `/api/ai/*` model bridge, so the AI flow work
 Groq JSON or reasoning errors:
 
 - The app avoids Groq reasoning-only request fields and validates JSON server-side.
-- If you change to another Groq model, test **Run AI recommendation** again because reasoning behavior can differ by model.
+- If you change to another Groq model, test **Generate recommendation** again because reasoning behavior can differ by model.
 
 Rate limits:
 
 - Groq free/on-demand tiers can hit token-per-minute limits.
 - Wait for the cooldown window or use a smaller test input.
-
-## Evaluation Notes
-
-Recommended Phase 2 test set:
-
-- English learner input.
-- Tamil learner input.
-- Mixed English/Tamil input.
-- Missing credential.
-- Unknown credential.
-- Missing region.
-- Low wage expectation.
-- Overqualified learner.
-- Learner interested in a crowded path.
-- Learner with no nearby jobs.
-
-Track these metrics:
-
-- JSON validity rate.
-- Profile extraction accuracy.
-- Hallucinated course/job ID acceptance rate.
-- Top-3 recommendation agreement against a hand-authored rubric.
-- Explanation factuality.
-- Tamil explanation usability pass/fail.
-- Average latency.
