@@ -258,9 +258,14 @@ function validateExtractedProfile(profile) {
   if (!Array.isArray(profile.credentials)) {
     throw new Error("Model extraction must include credentials as an array.");
   }
-  if (typeof profile.wageExpectationMonthly !== "number") {
+  const wageExpectationMonthly =
+    typeof profile.wageExpectationMonthly === "number"
+      ? profile.wageExpectationMonthly
+      : Number(String(profile.wageExpectationMonthly || "").replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(wageExpectationMonthly)) {
     throw new Error("Model extraction must include numeric wageExpectationMonthly.");
   }
+  profile.wageExpectationMonthly = wageExpectationMonthly;
   if (typeof profile.confidence !== "number") {
     throw new Error("Model extraction must include numeric confidence.");
   }
@@ -389,7 +394,7 @@ function dishaAiPlugin() {
           maxTokens: 900,
           payload,
           system:
-            "You extract a DISHA learner profile from English, Tamil, or mixed text. Return only JSON with fields: name, region, education, stream, year, targetOccupation, wageExpectationMonthly, language, credentials array of strings, skills array of strings, constraints array of strings, missingFields array of strings, confidence number 0..1. Do not invent verified credentials; if uncertain, lower confidence and put the gap in missingFields.",
+            "You extract a DISHA learner profile from English, Tamil, or mixed text. Return only JSON with fields: name, region, education, stream, year, targetOccupation, wageExpectationMonthly as a JSON number without currency text, language, credentials array of strings, skills array of strings, constraints array of strings, missingFields array of strings, confidence number 0..1. Do not invent verified credentials; if uncertain, lower confidence and put the gap in missingFields.",
         });
         sendJson(res, 200, validateExtractedProfile(parseJsonFromModel(text)));
         return;
