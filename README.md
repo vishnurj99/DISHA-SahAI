@@ -14,7 +14,7 @@ There is no deterministic fallback for those AI steps. If the model endpoint is 
 - npm.
 - A working LLM provider key or local model endpoint.
 
-The repo includes an `.npmrc` for the Oracle artifact registry/proxy settings used during the hackathon.
+Keep registry or proxy settings in a local `.npmrc`; this file is ignored by git.
 
 ## Setup
 
