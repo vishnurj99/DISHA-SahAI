@@ -1,0 +1,380 @@
+export const regions = ["Coimbatore", "Tiruchirappalli", "Madurai", "Salem", "Chennai"];
+
+export const fields = [
+  "Banking and finance",
+  "IT services",
+  "Manufacturing",
+  "Healthcare",
+  "Green energy",
+  "Public service operations",
+];
+
+export const courses = [
+  {
+    id: "course-bfsi-ops",
+    title: "Banking Operations and KYC Certificate",
+    provider: "Naan Mudhalvan seed",
+    durationWeeks: 6,
+    sourceName: "Naan Mudhalvan public catalog seed",
+    sourceUrl: "https://www.naanmudhalvan.tn.gov.in/",
+    normalizedTitle: "BFSI operations bridge",
+    confidence: 0.84,
+  },
+  {
+    id: "course-data-analytics",
+    title: "Data Analytics with Spreadsheets and SQL",
+    provider: "SWAYAM seed",
+    durationWeeks: 8,
+    sourceName: "SWAYAM public catalog seed",
+    sourceUrl: "https://swayam.gov.in/",
+    normalizedTitle: "Entry data analytics bridge",
+    confidence: 0.82,
+  },
+  {
+    id: "course-mis-reporting",
+    title: "MIS Reporting for Office Operations",
+    provider: "PMKVY seed",
+    durationWeeks: 4,
+    sourceName: "PMKVY skill course seed",
+    sourceUrl: "https://www.pmkvyofficial.org/",
+    normalizedTitle: "MIS and reporting bridge",
+    confidence: 0.8,
+  },
+  {
+    id: "course-cnc",
+    title: "CNC Machine Operator Foundation",
+    provider: "NPTEL seed",
+    durationWeeks: 10,
+    sourceName: "NPTEL public catalog seed",
+    sourceUrl: "https://nptel.ac.in/",
+    normalizedTitle: "CNC operator bridge",
+    confidence: 0.78,
+  },
+  {
+    id: "course-healthcare",
+    title: "Healthcare Front Desk and Patient Records",
+    provider: "SWAYAM Plus seed",
+    durationWeeks: 5,
+    sourceName: "SWAYAM Plus industry course seed",
+    sourceUrl: "https://swayam-plus.swayam2.ac.in/",
+    normalizedTitle: "Healthcare support bridge",
+    confidence: 0.79,
+  },
+  {
+    id: "course-solar",
+    title: "Solar Field Technician Basics",
+    provider: "Skill India seed",
+    durationWeeks: 7,
+    sourceName: "Skill India public skill seed",
+    sourceUrl: "https://www.skillindiadigital.gov.in/",
+    normalizedTitle: "Solar technician bridge",
+    confidence: 0.76,
+  },
+  {
+    id: "course-scheme-field",
+    title: "Government Scheme Field Coordinator Orientation",
+    provider: "State skill mission seed",
+    durationWeeks: 2,
+    sourceName: "Tamil Nadu skill mission seed",
+    sourceUrl: "https://www.tnskill.tn.gov.in/",
+    normalizedTitle: "Public scheme field operations",
+    confidence: 0.75,
+  },
+];
+
+export const occupations = [
+  {
+    id: "banking-ops",
+    title: "Banking Operations Associate",
+    field: "Banking and finance",
+    basePayMonthly: 27000,
+    timeToJobWeeks: "8 to 10",
+    requiredGroups: [
+      ["economics", "commerce", "b.com", "finance"],
+      ["digital", "spreadsheet", "computer"],
+    ],
+    bridgeCourseId: "course-bfsi-ops",
+    skills: ["customer communication", "records handling", "basic finance", "KYC workflow"],
+  },
+  {
+    id: "data-analyst",
+    title: "Data Analyst, Entry Level",
+    field: "IT services",
+    basePayMonthly: 32000,
+    timeToJobWeeks: "10 to 14",
+    requiredGroups: [
+      ["economics", "b.sc", "statistics", "commerce", "engineering"],
+      ["analytics", "sql", "python", "spreadsheet"],
+    ],
+    bridgeCourseId: "course-data-analytics",
+    skills: ["spreadsheets", "data cleaning", "SQL basics", "charts"],
+  },
+  {
+    id: "mis-coordinator",
+    title: "Data Operations Coordinator",
+    field: "IT services",
+    basePayMonthly: 24000,
+    timeToJobWeeks: "6 to 9",
+    requiredGroups: [
+      ["commerce", "economics", "arts", "science"],
+      ["digital", "spreadsheet", "computer"],
+    ],
+    bridgeCourseId: "course-mis-reporting",
+    skills: ["MIS reporting", "data entry quality", "operations tracking"],
+  },
+  {
+    id: "cnc-operator",
+    title: "CNC Machine Operator",
+    field: "Manufacturing",
+    basePayMonthly: 21000,
+    timeToJobWeeks: "8 to 12",
+    requiredGroups: [
+      ["iti", "polytechnic", "mechanical", "manufacturing"],
+      ["safety", "machine", "workshop"],
+    ],
+    bridgeCourseId: "course-cnc",
+    skills: ["machine setup", "production QA", "safety protocol"],
+  },
+  {
+    id: "healthcare-support",
+    title: "Healthcare Support Coordinator",
+    field: "Healthcare",
+    basePayMonthly: 19000,
+    timeToJobWeeks: "5 to 8",
+    requiredGroups: [
+      ["science", "biology", "nursing", "arts"],
+      ["records", "digital", "communication"],
+    ],
+    bridgeCourseId: "course-healthcare",
+    skills: ["patient records", "front desk workflow", "digital reporting"],
+  },
+  {
+    id: "solar-technician",
+    title: "Solar Field Technician",
+    field: "Green energy",
+    basePayMonthly: 23000,
+    timeToJobWeeks: "7 to 11",
+    requiredGroups: [
+      ["iti", "polytechnic", "electrical", "science"],
+      ["safety", "field", "technical"],
+    ],
+    bridgeCourseId: "course-solar",
+    skills: ["solar installation", "site safety", "maintenance logs"],
+  },
+  {
+    id: "scheme-field",
+    title: "Government Scheme Field Coordinator",
+    field: "Public service operations",
+    basePayMonthly: 22000,
+    timeToJobWeeks: "4 to 7",
+    requiredGroups: [
+      ["arts", "economics", "commerce", "social"],
+      ["communication", "records", "local language", "digital"],
+    ],
+    bridgeCourseId: "course-scheme-field",
+    skills: ["beneficiary support", "field documentation", "Tamil communication"],
+  },
+];
+
+export const jobs = [
+  {
+    id: "job-bfsi-cbe",
+    occupationId: "banking-ops",
+    region: "Coimbatore",
+    openings: 240,
+    distanceKm: 25,
+    employer: "District bank service partners",
+    sourceName: "Synthetic NCS-style job seed",
+    sourceUrl: "https://www.ncs.gov.in/",
+  },
+  {
+    id: "job-data-cbe",
+    occupationId: "data-analyst",
+    region: "Coimbatore",
+    openings: 72,
+    distanceKm: 30,
+    employer: "SME analytics and back-office firms",
+    sourceName: "Synthetic public job seed",
+    sourceUrl: "https://www.ncs.gov.in/",
+  },
+  {
+    id: "job-mis-cbe",
+    occupationId: "mis-coordinator",
+    region: "Coimbatore",
+    openings: 118,
+    distanceKm: 22,
+    employer: "Logistics, retail, and education operators",
+    sourceName: "Synthetic NCS-style job seed",
+    sourceUrl: "https://www.ncs.gov.in/",
+  },
+  {
+    id: "job-cnc-cbe",
+    occupationId: "cnc-operator",
+    region: "Coimbatore",
+    openings: 132,
+    distanceKm: 18,
+    employer: "Manufacturing suppliers",
+    sourceName: "Synthetic industrial cluster seed",
+    sourceUrl: "https://www.msde.gov.in/",
+  },
+  {
+    id: "job-health-mdu",
+    occupationId: "healthcare-support",
+    region: "Madurai",
+    openings: 96,
+    distanceKm: 20,
+    employer: "Private hospitals and clinics",
+    sourceName: "Synthetic public job seed",
+    sourceUrl: "https://www.ncs.gov.in/",
+  },
+  {
+    id: "job-solar-salem",
+    occupationId: "solar-technician",
+    region: "Salem",
+    openings: 88,
+    distanceKm: 35,
+    employer: "Renewable field service partners",
+    sourceName: "Synthetic green jobs seed",
+    sourceUrl: "https://www.skillindiadigital.gov.in/",
+  },
+  {
+    id: "job-field-cbe",
+    occupationId: "scheme-field",
+    region: "Coimbatore",
+    openings: 64,
+    distanceKm: 28,
+    employer: "District livelihood program partners",
+    sourceName: "Synthetic scheme operations seed",
+    sourceUrl: "https://www.tnskill.tn.gov.in/",
+  },
+];
+
+export const demand = [
+  { region: "Coimbatore", field: "Banking and finance", hiringStrength: 0.82, capacity: 26 },
+  { region: "Coimbatore", field: "IT services", hiringStrength: 0.48, capacity: 9 },
+  { region: "Coimbatore", field: "Manufacturing", hiringStrength: 0.74, capacity: 18 },
+  { region: "Coimbatore", field: "Healthcare", hiringStrength: 0.52, capacity: 14 },
+  { region: "Coimbatore", field: "Green energy", hiringStrength: 0.68, capacity: 12 },
+  { region: "Coimbatore", field: "Public service operations", hiringStrength: 0.64, capacity: 11 },
+  { region: "Tiruchirappalli", field: "Banking and finance", hiringStrength: 0.77, capacity: 20 },
+  { region: "Tiruchirappalli", field: "IT services", hiringStrength: 0.42, capacity: 8 },
+  { region: "Tiruchirappalli", field: "Public service operations", hiringStrength: 0.72, capacity: 14 },
+  { region: "Madurai", field: "Healthcare", hiringStrength: 0.81, capacity: 18 },
+  { region: "Madurai", field: "Banking and finance", hiringStrength: 0.65, capacity: 14 },
+  { region: "Salem", field: "Green energy", hiringStrength: 0.8, capacity: 16 },
+  { region: "Salem", field: "Manufacturing", hiringStrength: 0.7, capacity: 17 },
+  { region: "Chennai", field: "IT services", hiringStrength: 0.72, capacity: 26 },
+  { region: "Chennai", field: "Banking and finance", hiringStrength: 0.76, capacity: 28 },
+];
+
+export const sampleInputs = {
+  english:
+    "My name is Asha R. I am 22, final year BA Economics at Govt Arts College Coimbatore. I have Class 12 Commerce and a basic digital literacy badge. I want a Data Analyst job, but I can also consider bank or office work. I expect around 15000 rupees per month and need work near Coimbatore.",
+  tamil:
+    "என் பெயர் ஆஷா. கோயம்புத்தூரில் அரசு கலைக் கல்லூரியில் BA Economics இறுதி ஆண்டு படிக்கிறேன். Class 12 Commerce மற்றும் basic digital literacy certificate உள்ளது. எனக்கு Data Analyst வேலை பிடிக்கும். மாதம் 15000 ரூபாய் எதிர்பார்க்கிறேன். கோயம்புத்தூர் அருகில் வேலை வேண்டும்.",
+  missing:
+    "I am Priya from Salem. I finished school and have some computer practice, but I do not have all certificates with me. I want a stable first job and can do field work if training is short.",
+};
+
+export const primaryLearner = {
+  id: "learner-asha",
+  name: "Asha R.",
+  region: "Coimbatore",
+  stream: "Arts",
+  education: "BA Economics",
+  year: "Final year",
+  wageExpectationMonthly: 15000,
+  targetOccupationId: "data-analyst",
+  credentials: ["BA Economics", "Class 12 Commerce", "Basic digital literacy"],
+  skills: ["basic numeracy", "spreadsheet confidence", "Tamil communication"],
+};
+
+const names = [
+  "Kavin",
+  "Meena",
+  "Harini",
+  "Arun",
+  "Nisha",
+  "Muthu",
+  "Farah",
+  "Divya",
+  "Suresh",
+  "Latha",
+  "Ravi",
+  "Keerthi",
+  "Manoj",
+  "Revathi",
+  "Bala",
+  "Yamini",
+  "Gokul",
+  "Sneha",
+  "Ajay",
+  "Malar",
+];
+
+const learnerTemplates = [
+  {
+    stream: "Arts",
+    education: "BA Economics",
+    credentials: ["BA Economics", "Class 12 Commerce", "Basic digital literacy"],
+    skills: ["communication", "records", "basic numeracy"],
+  },
+  {
+    stream: "Commerce",
+    education: "BCom",
+    credentials: ["BCom", "Class 12 Commerce", "Spreadsheet basics"],
+    skills: ["accounts", "spreadsheet", "customer communication"],
+  },
+  {
+    stream: "Science",
+    education: "BSc Biology",
+    credentials: ["BSc Biology", "Class 12 Science", "Digital records"],
+    skills: ["records", "communication", "science"],
+  },
+  {
+    stream: "Vocational",
+    education: "ITI Electrical",
+    credentials: ["ITI Electrical", "Workshop safety"],
+    skills: ["field", "safety", "technical"],
+  },
+  {
+    stream: "Polytechnic",
+    education: "Diploma Mechanical",
+    credentials: ["Polytechnic Mechanical", "Machine workshop"],
+    skills: ["machine", "safety", "technical"],
+  },
+];
+
+const targetSequence = [
+  "data-analyst",
+  "data-analyst",
+  "data-analyst",
+  "data-analyst",
+  "data-analyst",
+  "banking-ops",
+  "mis-coordinator",
+  "cnc-operator",
+  "healthcare-support",
+  "solar-technician",
+  "scheme-field",
+  "data-analyst",
+];
+
+export const syntheticLearners = Array.from({ length: 52 }, (_, index) => {
+  const template = learnerTemplates[index % learnerTemplates.length];
+  const region = index < 26 ? "Coimbatore" : regions[index % regions.length];
+  const targetOccupationId = targetSequence[index % targetSequence.length];
+  return {
+    id: `synthetic-${String(index + 1).padStart(2, "0")}`,
+    name: `${names[index % names.length]} ${String.fromCharCode(65 + (index % 20))}.`,
+    region,
+    stream: template.stream,
+    education: template.education,
+    year: index % 3 === 0 ? "Final year" : "Recent graduate",
+    wageExpectationMonthly: 12000 + (index % 7) * 1500,
+    targetOccupationId,
+    credentials: template.credentials,
+    skills: template.skills,
+    synthetic: true,
+  };
+});
