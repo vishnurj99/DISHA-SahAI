@@ -20,7 +20,6 @@ DISHA is a Vite + React web app for AI-assisted career pathway recommendations. 
 
 - Keep the app role-gated through local seeded profiles. Do not add real auth unless explicitly requested.
 - Keep the visible product UI production-oriented. Avoid visible copy such as "hackathon", "demo", "test user", "synthetic", "no auth", or raw implementation details in primary screens.
-- The Evaluation track is presented as `Operations` in the UI.
 - Learner data should align with Academic Bank of Credits records: `university`, `course`, `subjectName`, `subjectCode`, `year`, `credit`, `selected`, and `status`.
 - Do not remove the learner free-text input or recommendation flow.
 - Do not add deterministic AI fallbacks. If the model is unavailable or returns invalid output, surface the error.

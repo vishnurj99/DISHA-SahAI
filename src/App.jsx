@@ -7,7 +7,6 @@ import {
   Brain,
   Briefcase,
   CheckCircle2,
-  ClipboardCheck,
   Database,
   Gauge,
   GraduationCap,
@@ -55,11 +54,6 @@ const trackMeta = {
     icon: Landmark,
     description: "Regional supply and demand.",
   },
-  evaluation: {
-    label: "Operations",
-    icon: ClipboardCheck,
-    description: "System health and validation.",
-  },
 };
 
 const testUsers = [
@@ -83,13 +77,6 @@ const testUsers = [
     role: "government",
     org: "Tamil Nadu Skill Mission",
     purpose: "Monitor regional supply and demand.",
-  },
-  {
-    id: "reviewer",
-    name: "Operations Reviewer",
-    role: "evaluation",
-    org: "DISHA Operations",
-    purpose: "Review system health and validation.",
   },
 ];
 
@@ -175,8 +162,7 @@ function App() {
       );
     }
     if (sessionUser.role === "counselor") return <CounselorView currentRun={currentRun} />;
-    if (sessionUser.role === "government") return <GovernmentView currentRun={currentRun} />;
-    return <EvaluationView runState={runState} modelHealth={modelHealth} />;
+    return <GovernmentView currentRun={currentRun} />;
   }
 
   if (!sessionUser) {
@@ -856,76 +842,6 @@ function GovernmentView({ currentRun }) {
               ))}
             </div>
           ))}
-        </div>
-      </section>
-    </section>
-  );
-}
-
-function EvaluationView({ runState, modelHealth }) {
-  const modelOk = modelHealth.state === "ready";
-  const runOk = runState.status === "success";
-  return (
-    <section className="view">
-      <HeaderBand
-        eyebrow="Operations"
-        title="System readiness"
-        copy="Monitor AI availability, validation status, and responsible AI controls."
-        right={
-          <div className="source-stack">
-            <SourceChip icon={ClipboardCheck} label="Validation" detail="Current checks" />
-            <SourceChip icon={GraduationCap} label="Readiness" detail="Operational review" />
-          </div>
-        }
-      />
-      <div className="workspace-grid lower-grid">
-        <section className="panel">
-          <div className="panel-heading">
-            <div>
-              <span className="section-kicker">Current run</span>
-              <h2>AI checks</h2>
-            </div>
-            <Gauge size={24} />
-          </div>
-          <div className="evaluation-grid">
-            <Stat icon={Brain} value={modelOk ? "Pass" : "Fail"} label="Model endpoint reachable" />
-            <Stat icon={Database} value={runOk ? "Pass" : "Waiting"} label="Profile validation" />
-            <Stat icon={ShieldCheck} value={runOk ? "0" : "n/a"} label="Hallucinated IDs accepted" />
-            <Stat icon={Gauge} value={runOk ? `${runState.latencyMs}ms` : "n/a"} label="Observed latency" />
-          </div>
-        </section>
-        <section className="panel">
-          <div className="panel-heading">
-            <div>
-              <span className="section-kicker">Validation queue</span>
-              <h2>Coverage checks</h2>
-            </div>
-            <ClipboardCheck size={24} />
-          </div>
-          <ul className="check-list">
-            <li>English BA Economics learner targeting a crowded analyst path.</li>
-            <li>Tamil learner profile with the same Asha facts.</li>
-            <li>Incomplete credential case with limited-information labeling.</li>
-            <li>ITI/polytechnic learner for manufacturing or green energy.</li>
-            <li>No nearby jobs case that widens the region honestly.</li>
-          </ul>
-        </section>
-      </div>
-      <section className="panel">
-        <div className="panel-heading">
-          <div>
-            <span className="section-kicker">Guardrails as built</span>
-            <h2>Responsible AI controls</h2>
-          </div>
-          <ShieldCheck size={24} />
-        </div>
-        <div className="guardrail-grid">
-          <span>Structured profile validation</span>
-          <span>Unknown course/job IDs rejected</span>
-          <span>Data provenance reviewed</span>
-          <span>No sensitive personal data required</span>
-          <span>Low confidence visible in profile</span>
-          <span>AI unavailability shown clearly</span>
         </div>
       </section>
     </section>

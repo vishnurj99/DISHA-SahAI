@@ -1027,33 +1027,6 @@ textarea {
   border-color: #e4dcef;
 }
 
-.evaluation-grid,
-.guardrail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.check-list {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding-left: 20px;
-  color: var(--body);
-}
-
-.guardrail-grid span {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 10px;
-  color: var(--violet-900);
-  background: #fbf8ff;
-  border: 1px solid var(--violet-200);
-  border-radius: 8px;
-  font-weight: 800;
-}
-
 .spin {
   animation: spin 1s linear infinite;
 }
@@ -1116,9 +1089,7 @@ textarea {
 
   .profile-editor,
   .credit-summary,
-  .gap-summary-grid,
-  .evaluation-grid,
-  .guardrail-grid {
+  .gap-summary-grid {
     grid-template-columns: 1fr;
   }
 
