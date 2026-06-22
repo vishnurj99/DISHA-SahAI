@@ -845,8 +845,27 @@ textarea {
   font-size: 0.94rem;
 }
 
-.large-copy {
-  font-size: 1.06rem;
+.markdown-copy {
+  display: grid;
+  gap: 10px;
+  color: var(--body);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+.markdown-copy p,
+.markdown-copy ul {
+  margin: 0;
+}
+
+.markdown-copy ul {
+  display: grid;
+  gap: 6px;
+  padding-left: 20px;
+}
+
+.markdown-copy strong {
+  color: var(--ink);
 }
 
 .course-list {

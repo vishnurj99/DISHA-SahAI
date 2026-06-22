@@ -589,7 +589,7 @@ function RecommendationResults({ currentRun }) {
             </div>
             <Sparkles size={24} />
           </div>
-          <p className="large-copy">{currentRun.explanation}</p>
+          <MarkdownText text={currentRun.explanation} />
           <div className="health-strip">
             <Stat icon={Brain} value={currentRun.semantic.scores.length} label="Pathways reviewed" />
             <Stat icon={ShieldCheck} value={percent(currentRun.profile.confidence)} label="Profile confidence" />
@@ -616,6 +616,57 @@ function RecommendationResults({ currentRun }) {
       </section>
     </div>
   );
+}
+
+function MarkdownText({ text }) {
+  const normalized = String(text || "")
+    .replace(/(^|[^*])\s\*\s+(?=\S)/g, "$1\n* ")
+    .replace(/\s+(\*\*[^*]+\*\*)/g, "\n$1");
+  const lines = normalized
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const blocks = [];
+
+  for (const line of lines) {
+    if (/^[-*]\s+/.test(line)) {
+      const previous = blocks[blocks.length - 1];
+      if (previous?.type === "list") previous.items.push(line.replace(/^[-*]\s+/, ""));
+      else blocks.push({ type: "list", items: [line.replace(/^[-*]\s+/, "")] });
+    } else {
+      blocks.push({ type: "paragraph", text: line });
+    }
+  }
+
+  return (
+    <div className="markdown-copy">
+      {blocks.map((block, blockIndex) =>
+        block.type === "list" ? (
+          <ul key={`list-${blockIndex}`}>
+            {block.items.map((item, itemIndex) => (
+              <li key={`${item}-${itemIndex}`}>
+                <InlineMarkdown text={item} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p key={`${block.text}-${blockIndex}`}>
+            <InlineMarkdown text={block.text} />
+          </p>
+        ),
+      )}
+    </div>
+  );
+}
+
+function InlineMarkdown({ text }) {
+  const parts = String(text || "").split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={`${part}-${index}`}>{part}</span>;
+  });
 }
 
 function RoleGapPanel({ pathway, profile }) {
