@@ -108,7 +108,6 @@ function percent(value) {
 function App() {
   const [sessionUser, setSessionUser] = useState(null);
   const [inputText, setInputText] = useState(sampleInputs.english);
-  const [preferredLanguage, setPreferredLanguage] = useState("English");
   const [modelHealth, setModelHealth] = useState({ state: "checking", detail: "Checking model" });
   const [runState, setRunState] = useState({ status: "idle" });
   const [editableProfile, setEditableProfile] = useState(createInitialProfile());
@@ -132,16 +131,17 @@ function App() {
   async function runPipeline({ profile, input } = {}) {
     const startedAt = performance.now();
     setRunState({ status: "loading", startedAt });
+    const language = profile?.language || editableProfile.language || "English";
     try {
       const extracted = profile
         ? normalizeExtractedProfile(profile)
-        : normalizeExtractedProfile(await extractProfile(input, preferredLanguage));
+        : normalizeExtractedProfile(await extractProfile(input, language));
 
       const candidates = buildCandidateFacts(extracted);
       const semantic = await scoreSemanticFit(extracted, candidates);
       const ranked = rankRecommendations(extracted, semantic.scores);
       const explanationResponse = await generateExplanation(
-        buildExplanationPayload(ranked, preferredLanguage),
+        buildExplanationPayload(ranked, ranked.profile.language || language),
       );
       const latencyMs = Math.round(performance.now() - startedAt);
       setEditableProfile(ranked.profile);
@@ -159,11 +159,6 @@ function App() {
     }
   }
 
-  function applySample(sampleKey) {
-    setInputText(sampleInputs[sampleKey]);
-    setPreferredLanguage(sampleKey === "tamil" ? "Tamil" : "English");
-  }
-
   function renderTrack() {
     if (!sessionUser) return null;
     if (sessionUser.role === "learner") {
@@ -171,9 +166,6 @@ function App() {
         <IntakeView
           inputText={inputText}
           setInputText={setInputText}
-          preferredLanguage={preferredLanguage}
-          setPreferredLanguage={setPreferredLanguage}
-          applySample={applySample}
           runState={runState}
           runPipeline={runPipeline}
           editableProfile={editableProfile}
@@ -335,9 +327,6 @@ function HeaderBand({ eyebrow, title, copy, right }) {
 function IntakeView({
   inputText,
   setInputText,
-  preferredLanguage,
-  setPreferredLanguage,
-  applySample,
   runState,
   runPipeline,
   editableProfile,
@@ -378,11 +367,6 @@ function IntakeView({
             </div>
             <Languages size={24} />
           </div>
-          <div className="sample-row">
-            <button type="button" onClick={() => applySample("english")}>English profile</button>
-            <button type="button" onClick={() => applySample("tamil")}>Tamil profile</button>
-            <button type="button" onClick={() => applySample("missing")}>Incomplete profile</button>
-          </div>
           <textarea
             className="profile-input"
             value={inputText}
@@ -390,18 +374,6 @@ function IntakeView({
             rows={9}
           />
           <div className="action-row">
-            <div className="language-toggle">
-              {["English", "Tamil"].map((language) => (
-                <button
-                  type="button"
-                  key={language}
-                  className={preferredLanguage === language ? "active" : ""}
-                  onClick={() => setPreferredLanguage(language)}
-                >
-                  {language}
-                </button>
-              ))}
-            </div>
             <button
               type="button"
               className="primary-button"

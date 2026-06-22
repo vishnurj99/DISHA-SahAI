@@ -463,7 +463,6 @@ p {
   margin-bottom: 20px;
 }
 
-.sample-row,
 .action-row,
 .health-strip,
 .pathway-metrics {
@@ -472,7 +471,6 @@ p {
   gap: 10px;
 }
 
-.sample-row button,
 .ghost-button,
 .primary-button {
   display: inline-flex;
@@ -485,7 +483,6 @@ p {
   font-weight: 800;
 }
 
-.sample-row button,
 .ghost-button {
   color: var(--violet-900);
   background: #fff;
@@ -509,29 +506,6 @@ textarea {
   border-radius: 8px;
   resize: vertical;
   line-height: 1.45;
-}
-
-.language-toggle {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(92px, 1fr));
-  gap: 8px;
-  padding: 5px;
-  background: var(--violet-100);
-  border-radius: 999px;
-}
-
-.language-toggle button {
-  min-height: 38px;
-  color: var(--violet-900);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  font-weight: 900;
-}
-
-.language-toggle button.active {
-  color: #fff;
-  background: var(--violet-800);
 }
 
 .error-panel {
