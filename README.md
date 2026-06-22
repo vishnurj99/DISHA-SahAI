@@ -148,7 +148,7 @@ The preview server also serves the `/api/ai/*` model bridge, so the AI flow work
 
 Groq JSON or reasoning errors:
 
-- The app sets Groq requests to `reasoning_effort: "none"` and validates JSON server-side.
+- The app avoids Groq reasoning-only request fields and validates JSON server-side.
 - If you change to another Groq model, test **Run AI recommendation** again because reasoning behavior can differ by model.
 
 Rate limits:

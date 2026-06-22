@@ -148,8 +148,6 @@ async function openAiGenerate({ system, payload, json, maxTokens }) {
         model: config.model,
         temperature: json ? 0.1 : 0.3,
         max_completion_tokens: maxTokens || (json ? 1200 : 800),
-        reasoning_format: config.provider === "groq" ? "parsed" : undefined,
-        reasoning_effort: config.provider === "groq" ? "none" : undefined,
         response_format: useProviderJsonMode ? { type: "json_object" } : undefined,
         messages: [
           { role: "system", content: jsonSystem },
@@ -449,6 +447,9 @@ export default defineConfig(({ mode }) => {
   return {
     base: "./",
     cacheDir: ".vite",
+    preview: {
+      allowedHosts: ["disha-sahai.onrender.com"],
+    },
     plugins: [react(), dishaAiPlugin()],
   };
 });
